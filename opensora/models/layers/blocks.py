@@ -359,8 +359,6 @@ def use_xformers(q, k, v, self_attn_drop, attn_bias, self_scale, self_attn_half)
     if on_linux:
         x = xformers.ops.memory_efficient_attention(q, k, v, p=self_attn_drop.p, attn_bias=attn_bias)
     else:
-        #x = memory_efficient_attention(q, k, v, self_attn_drop.p, attn_bias)
-
         # (B, N, #heads, #dim) -> (B, #heads, N, #dim)
         q = q.permute(0, 2, 1, 3)
         k = k.permute(0, 2, 1, 3)
@@ -368,6 +366,7 @@ def use_xformers(q, k, v, self_attn_drop, attn_bias, self_scale, self_attn_half)
         dtype = q.dtype
         q = q * self_scale
         attn = q @ k.transpose(-2, -1)  # translate attn to float32
+        # the replacement they already had above for the first part didn't add the bias
         if attn_bias is not None:
             attn += attn_bias.materialize(attn.shape).to(attn.device)
         if not self_attn_half:
@@ -380,7 +379,7 @@ def use_xformers(q, k, v, self_attn_drop, attn_bias, self_scale, self_attn_half)
     return x
 
 
-from custom_stuff.BlockDiagonalMask import BlockDiagonalMask
+from custom_stuff.attn_bias import BlockDiagonalMask
 
 
 def create_block_diagonal_mask(N, B, mask):
