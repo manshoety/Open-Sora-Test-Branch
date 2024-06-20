@@ -12,9 +12,16 @@
 
 
 import torch
-from colossalai.utils import get_current_device
+import platform
+
+on_linux = platform.system() == 'Linux'
+
+if on_linux:
+    from colossalai.utils import get_current_device
 
 from .gaussian_diffusion import GaussianDiffusion
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def space_timesteps(num_timesteps, section_counts):
@@ -89,7 +96,10 @@ class SpacedDiffusion(GaussianDiffusion):
                 self.timestep_map.append(i)
         kwargs["betas"] = torch.FloatTensor(new_betas)
         super().__init__(**kwargs)
-        self.map_tensor = torch.tensor(self.timestep_map, device=get_current_device())
+        if on_linux:
+            self.map_tensor = torch.tensor(self.timestep_map, device=get_current_device())
+        else:
+            self.map_tensor = torch.tensor(self.timestep_map, device=device)
 
     def p_mean_variance(self, model, *args, **kwargs):  # pylint: disable=signature-differs
         return super().p_mean_variance(self._wrap_model(model), *args, **kwargs)
