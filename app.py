@@ -334,6 +334,7 @@ def run_inference(mode, prompt_text, resolution, aspect_ratio, length, motion_st
         elif mode == "Text2Video":
             if reference_image is not None:
                 # save image to disk
+                current_datetime = datetime.datetime.now()
                 timestamp = current_datetime.timestamp()
                 save_path = f"output_{timestamp}_temp.png"
                 im = Image.fromarray(reference_image)
