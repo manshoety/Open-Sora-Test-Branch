@@ -359,6 +359,8 @@ def use_xformers(q, k, v, self_attn_drop, attn_bias, self_scale, self_attn_half)
     if on_linux:
         x = xformers.ops.memory_efficient_attention(q, k, v, p=self_attn_drop.p, attn_bias=attn_bias)
     else:
+        #x = memory_efficient_attention(q, k, v, self_attn_drop.p, attn_bias)
+
         # (B, N, #heads, #dim) -> (B, #heads, N, #dim)
         q = q.permute(0, 2, 1, 3)
         k = k.permute(0, 2, 1, 3)
@@ -366,12 +368,15 @@ def use_xformers(q, k, v, self_attn_drop, attn_bias, self_scale, self_attn_half)
         dtype = q.dtype
         q = q * self_scale
         attn = q @ k.transpose(-2, -1)  # translate attn to float32
+        if attn_bias is not None:
+            attn += attn_bias.materialize(attn.shape).to(attn.device)
         if not self_attn_half:
             attn = attn.to(torch.float32)
         attn = attn.softmax(dim=-1)
         attn = attn.to(dtype)  # cast back attn to original dtype
         attn = self_attn_drop(attn)
         x = attn @ v
+
     return x
 
 
@@ -379,51 +384,11 @@ from custom_stuff.BlockDiagonalMask import BlockDiagonalMask
 
 
 def create_block_diagonal_mask(N, B, mask):
-    """
-    Create a block diagonal mask manually.
-
-    Args:
-        N (int): Length of each block.
-        B (int): Number of blocks.
-        mask (torch.Tensor): Original mask of shape [B, N, N] or [B, 1, N, N].
-
-    Returns:
-        torch.Tensor: A block diagonal mask.
-    """
     if on_linux:
         block_diagonal_mask = xformers.ops.fmha.BlockDiagonalMask.from_seqlens([N] * B, mask)
     else:
         block_diagonal_mask = BlockDiagonalMask.from_seqlens([N] * B, mask)
-
-
-        # Ensure mask is a tensor
-        #if isinstance(mask, list):
-        #   mask = torch.tensor(mask)
-
-        # print(mask.shape)
-
-        # Check the dimensions of the mask
-        #if mask.dim() == 2 and mask.size(0) == B and mask.size(1) == N:
-        #    mask = mask.unsqueeze(2).expand(B, N, N)
-        #elif mask.dim() == 3 and mask.size(0) == B and mask.size(1) == N:
-        #    mask = mask.unsqueeze(1).expand(B, 1, N, N)
-
-        #seqlens = [N] * B
-
-        #total_length = sum(seqlens)
-        #block_diagonal_mask = np.zeros((total_length, total_length))
-
-        #current_pos = 0
-        #for length in seqlens:
-        #    block_diagonal_mask[current_pos:current_pos + length, current_pos:current_pos + length] = 1
-        #    current_pos += length
-
-        # Apply the additional mask (assuming mask is a simple binary mask [1, 0])
-        #if len(mask) == 2:
-        #    block_diagonal_mask *= mask[0]
-
     return block_diagonal_mask
-
 
 
 class SeqParallelAttention(Attention):
