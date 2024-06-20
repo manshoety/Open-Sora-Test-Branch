@@ -195,4 +195,3 @@ dependencies:
       - xformers==0.0.26.post1
       - yapf==0.40.2
       - zipp==3.19.2
-prefix: C:\Users\kelly\.conda\envs\opensora
