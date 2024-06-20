@@ -17,7 +17,7 @@
 
 ```bash
 # create a conda virtual env and activate
-conda env create -f environment_win.yml
+conda env create -f environment_win_with_xformers.yml
 conda activate opensora
 
 # install torch, torchvision, torchaudio
