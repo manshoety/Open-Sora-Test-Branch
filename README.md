@@ -12,6 +12,22 @@
     <a href="https://huggingface.co/spaces/hpcai-tech/open-sora"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Gradio Demo-blue"></a>
 </div>
 
+
+## Windows Install
+
+```bash
+# create a conda virtual env and activate
+conda env create -f environment_win.yml
+conda activate opensora
+
+# install torch, torchvision, torchaudio
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# run the webUI (this will install the models)
+python app.py
+```
+
+## Original Repo:
 ## Open-Sora: Democratizing Efficient Video Production for All
 
 We design and implement **Open-Sora**, an initiative dedicated to **efficiently** producing high-quality video. We hope to make the model,
