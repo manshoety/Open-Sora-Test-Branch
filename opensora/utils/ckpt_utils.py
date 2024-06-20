@@ -7,8 +7,16 @@ from typing import Tuple
 import torch
 import torch.distributed as dist
 import torch.nn as nn
-from colossalai.booster import Booster
-from colossalai.checkpoint_io import GeneralCheckpointIO
+import platform
+
+on_linux = platform.system() == 'Linux'
+
+if on_linux:
+    from colossalai.booster import Booster
+    from colossalai.checkpoint_io import GeneralCheckpointIO
+else:
+    Booster = torch
+
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler
 from torchvision.datasets.utils import download_url
@@ -146,8 +154,11 @@ def download_model(model_name=None, local_path=None, url=None):
 
 
 def load_from_sharded_state_dict(model, ckpt_path, model_name="model", strict=False):
-    ckpt_io = GeneralCheckpointIO()
-    ckpt_io.load_model(model, os.path.join(ckpt_path, model_name), strict=strict)
+        if on_linux:
+            ckpt_io = GeneralCheckpointIO()
+            ckpt_io.load_model(model, os.path.join(ckpt_path, model_name), strict=strict)
+        else:
+            model.load_state_dict(torch.load(os.path.join(ckpt_path, model_name)), strict=strict)
 
 
 def model_sharding(model: torch.nn.Module):
