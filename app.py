@@ -22,6 +22,10 @@ from tempfile import NamedTemporaryFile
 import datetime
 
 
+import numpy
+print(f'NUMPY: {numpy.__version__}')
+
+
 
 MODEL_TYPES = ["v1.2-stage3"]
 WATERMARK_PATH = "./assets/images/watermark/watermark.png"
@@ -280,6 +284,8 @@ stdit = torch.jit.script(stdit)
 
 #print("prinning complete")
 
+from PIL import Image
+
 
 def run_inference(mode, prompt_text, resolution, aspect_ratio, length, motion_strength, aesthetic_score, use_motion_strength, use_aesthetic_score, camera_motion, reference_image, refine_prompt, fps, num_loop, seed, sampling_steps, cfg_scale):
     if prompt_text is None or prompt_text == "":
@@ -328,11 +334,11 @@ def run_inference(mode, prompt_text, resolution, aspect_ratio, length, motion_st
         elif mode == "Text2Video":
             if reference_image is not None:
                 # save image to disk
-                from PIL import Image
+                timestamp = current_datetime.timestamp()
+                save_path = f"output_{timestamp}_temp.png"
                 im = Image.fromarray(reference_image)
-                temp_file = NamedTemporaryFile(suffix=".png")
-                im.save(temp_file.name)
-                refs = [temp_file.name]
+                im.save(save_path)
+                refs = [save_path]
             else:
                 refs = [""]
         else:
@@ -587,13 +593,13 @@ def main():
                     placeholder="Describe your video here",
                     lines=4
                 )
-                refine_prompt = gr.Checkbox(value=True, label="Refine prompt with GPT4o")
+                refine_prompt = gr.Checkbox(value=False, label="Refine prompt with GPT4o")
                 random_prompt_btn = gr.Button("Random Prompt By GPT4o")
                 
                 gr.Markdown("## Basic Settings")
                 resolution = gr.Radio(
                      choices=["144p", "240p", "360p", "480p", "720p"],
-                     value="480p",
+                     value="144p",
                     label="Resolution", 
                 )
                 aspect_ratio = gr.Radio(
@@ -635,7 +641,7 @@ def main():
                 with gr.Row():
                     with gr.Column():
                         motion_strength = gr.Slider(
-                            value=5,
+                            value=20,
                             minimum=0,
                             maximum=100,
                             step=1,
