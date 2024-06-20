@@ -20,7 +20,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint
 import platform
-on_linux = platform.system() == 'Linux'
+on_linux = True  # platform.system() == 'Linux'
 if on_linux:
     import xformers.ops
 from einops import rearrange
