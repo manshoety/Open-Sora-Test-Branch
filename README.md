@@ -13,7 +13,7 @@
 </div>
 
 
-## Windows Install (Currently the prompt attention is broken)
+## Windows Install (please let me know if xformers gives you issues)
 
 ```bash
 # create a conda virtual env and activate
