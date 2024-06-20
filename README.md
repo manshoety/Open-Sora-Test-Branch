@@ -13,7 +13,7 @@
 </div>
 
 
-## Windows Install
+## Windows Install (Currently the prompt attention is broken)
 
 ```bash
 # create a conda virtual env and activate
