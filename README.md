@@ -17,8 +17,10 @@
 
 ```bash
 # create a conda virtual env and activate
-conda env create -f environment_win_with_xformers.yml
+conda env create -f environment_win.yml
 conda activate opensora
+
+pip install xformers -U --no-deps
 
 # install torch, torchvision, torchaudio
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
